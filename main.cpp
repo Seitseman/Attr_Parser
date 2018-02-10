@@ -133,12 +133,17 @@ void find_and_print_response(map<string, shared_ptr<Tag>>rootTag, const string &
 
         tags_string.erase(0, found+1);
     } while (found < string::npos);
-
-    shared_ptr<Tag> cur_tag = rootTag.begin()->second;
-    if (tag_names.at(0) != cur_tag->name) {
+    if (tag_names.empty()) {
         cout << "Not Found!\n";
         return;
     }
+
+    auto cur_tag_it = rootTag.find(tag_names.at(0));
+    if (cur_tag_it == rootTag.end()) {
+        cout << "Not Found!\n";
+        return;
+    }
+    shared_ptr<Tag> cur_tag = cur_tag_it->second;
     for (vector<Tag>::size_type i = 1; i < tag_names.size(); ++i) {
         auto childIt = cur_tag->children.find(tag_names.at(i));
         if (childIt == cur_tag->children.end()) {
@@ -178,7 +183,7 @@ int main() {
 
     map<string,shared_ptr<Tag>> rootTag = parse_hrml(hrml);
 
-    for (const auto query : queries)
+    for (const auto& query : queries)
         find_and_print_response(rootTag, query);
 
     return 0;
