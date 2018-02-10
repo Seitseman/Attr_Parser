@@ -66,13 +66,28 @@ size_t find_start_tag(const string& str, size_t offset = 0)
     return  pos;
 }
 
+size_t find_closing_brace(const string & str, size_t start_pos = 0)
+{
+    return str.find('>', start_pos);
+}
+
+size_t find_nearest_whitespace(const string & str, size_t start_pos = 0)
+{
+    return str.find_first_of(" \f\n\r\t\v", start_pos);
+}
+
+size_t find_end_of_tag_name(const string & str, size_t start_pos = 0)
+{
+    return min(find_closing_brace(str, start_pos), find_nearest_whitespace(str, start_pos));
+}
+
 map<string, shared_ptr<Tag>> parse_hrml(const string& ss)
 {
     map<string, shared_ptr<Tag>> rootMap;
 
     size_t start_tag_pos = find_start_tag(ss, 0);
     while (start_tag_pos < string::npos) {
-        size_t end_of_tag_name_pos = ss.find(' ', start_tag_pos);
+        size_t end_of_tag_name_pos = find_end_of_tag_name(ss, start_tag_pos);
         string cur_tag_name = ss.substr(start_tag_pos + 1, end_of_tag_name_pos - start_tag_pos - 1);
 
         string end_tag_token = string{"</"} + cur_tag_name + string{">"};
@@ -82,7 +97,7 @@ map<string, shared_ptr<Tag>> parse_hrml(const string& ss)
         rootMap[root->name]=root;
 
         // find attributes
-        size_t closing_brace = ss.find('>', start_tag_pos);
+        size_t closing_brace = find_closing_brace(ss, start_tag_pos);
         root->attribute = find_attributes(ss.substr(end_of_tag_name_pos, closing_brace-end_of_tag_name_pos));
 
         start_tag_pos = find_start_tag(ss, start_tag_pos+1);
